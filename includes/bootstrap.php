@@ -2,16 +2,6 @@
 declare(strict_types=1);
 
 $config = require dirname(__DIR__) . '/config.php';
-ini_set('session.use_strict_mode', '1');
-session_name($config['session']['name']);
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'httponly' => true,
-    'secure' => !empty($_SERVER['HTTPS']),
-    'samesite' => 'Lax',
-]);
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 try {
     $pdo = new PDO($config['db']['dsn'], $config['db']['user'], $config['db']['password'], [
@@ -23,6 +13,47 @@ try {
     http_response_code(503);
     exit('Database connection failed. Import database/schema.sql and review config.php.');
 }
+
+final class DatabaseSessionHandler implements SessionHandlerInterface {
+    public function __construct(private PDO $pdo) {}
+    public function open(string $path, string $name): bool { return true; }
+    public function close(): bool { return true; }
+    public function read(string $id): string|false {
+        $stmt = $this->pdo->prepare('SELECT data FROM sessions WHERE id = ? AND last_activity >= ?');
+        $stmt->execute([$id, time() - (int)ini_get('session.gc_maxlifetime')]);
+        $data = $stmt->fetchColumn();
+        return $data === false ? '' : (string)$data;
+    }
+    public function write(string $id, string $data): bool {
+        $stmt = $this->pdo->prepare('INSERT INTO sessions (id, data, last_activity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data), last_activity = VALUES(last_activity)');
+        return $stmt->execute([$id, $data, time()]);
+    }
+    public function destroy(string $id): bool {
+        $stmt = $this->pdo->prepare('DELETE FROM sessions WHERE id = ?');
+        return $stmt->execute([$id]);
+    }
+    public function gc(int $max_lifetime): int|false {
+        $stmt = $this->pdo->prepare('DELETE FROM sessions WHERE last_activity < ?');
+        $stmt->execute([time() - $max_lifetime]);
+        return $stmt->rowCount();
+    }
+}
+
+ini_set('session.use_strict_mode', '1');
+session_name($config['session']['name']);
+if ($config['session']['driver'] === 'database') {
+    session_set_save_handler(new DatabaseSessionHandler($pdo), true);
+}
+$forwardedProto = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+$isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'httponly' => true,
+    'secure' => $isHttps || $forwardedProto === 'https',
+    'samesite' => 'Lax',
+]);
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 function e(?string $value): string { return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'); }
 function url(string $path = ''): string {

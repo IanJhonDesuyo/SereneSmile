@@ -10,5 +10,6 @@ return [
     'session' => [
         'name' => 'serene_admin',
         'idle_timeout' => 1800,
+        'driver' => getenv('SERENE_SESSION_DRIVER') ?: (getenv('VERCEL') ? 'database' : 'files'),
     ],
 ];

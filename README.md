@@ -16,6 +16,16 @@ A responsive PHP 8/MySQL admin module for a dental clinic. It provides secure ad
 
 The defaults in `config.php` match a normal local XAMPP installation (`root`, no password). For another environment, set `SERENE_DB_DSN`, `SERENE_DB_USER`, and `SERENE_DB_PASSWORD` in the web server environment.
 
+## Deploying to Vercel
+
+This repository includes a single-function Vercel router using the community `vercel-php` runtime. Connect the GitHub repository to Vercel, then add these variables for Production and Preview deployments:
+
+- `SERENE_DB_DSN` — for example, `mysql:host=db.example.com;port=3306;dbname=serene_smile;charset=utf8mb4`
+- `SERENE_DB_USER`
+- `SERENE_DB_PASSWORD`
+
+Import `database/schema.sql` into the hosted MySQL-compatible database before the first login. Vercel automatically selects database-backed sessions; local XAMPP continues to use normal file sessions. You can override this with `SERENE_SESSION_DRIVER` (`database` or `files`).
+
 ## Security and behavior
 
 - Passwords use PHP's adaptive `password_hash`; no default credential is shipped.

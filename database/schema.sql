@@ -106,3 +106,10 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_audit_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id VARCHAR(128) PRIMARY KEY,
+  data MEDIUMBLOB NOT NULL,
+  last_activity INT UNSIGNED NOT NULL,
+  INDEX idx_sessions_activity (last_activity)
+) ENGINE=InnoDB;
