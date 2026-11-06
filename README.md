@@ -23,6 +23,7 @@ This repository includes a single-function Vercel router using the community `ve
 - `SERENE_DB_DSN` — for example, `mysql:host=db.example.com;port=3306;dbname=serene_smile;charset=utf8mb4`
 - `SERENE_DB_USER`
 - `SERENE_DB_PASSWORD`
+- `SERENE_DB_SSL_CA` — optional CA path override; Vercel uses the bundled ISRG Root X1 certificate by default
 
 Import `database/schema.sql` into the hosted MySQL-compatible database before the first login. Vercel automatically selects database-backed sessions; local XAMPP continues to use normal file sessions. You can override this with `SERENE_SESSION_DRIVER` (`database` or `files`).
 

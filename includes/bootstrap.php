@@ -3,12 +3,18 @@ declare(strict_types=1);
 
 $config = require dirname(__DIR__) . '/config.php';
 
+$pdoOptions = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES => false,
+];
+if (!empty($config['db']['ssl_ca'])) {
+    $pdoOptions[PDO::MYSQL_ATTR_SSL_CA] = $config['db']['ssl_ca'];
+    $pdoOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+}
+
 try {
-    $pdo = new PDO($config['db']['dsn'], $config['db']['user'], $config['db']['password'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    $pdo = new PDO($config['db']['dsn'], $config['db']['user'], $config['db']['password'], $pdoOptions);
 } catch (PDOException $e) {
     http_response_code(503);
     exit('Database connection failed. Import database/schema.sql and review config.php.');

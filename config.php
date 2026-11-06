@@ -6,6 +6,7 @@ return [
         'dsn' => getenv('SERENE_DB_DSN') ?: 'mysql:host=127.0.0.1;dbname=serene_smile;charset=utf8mb4',
         'user' => getenv('SERENE_DB_USER') ?: 'root',
         'password' => getenv('SERENE_DB_PASSWORD') ?: '',
+        'ssl_ca' => getenv('SERENE_DB_SSL_CA') ?: (getenv('VERCEL') ? __DIR__ . '/certs/isrgrootx1.pem' : null),
     ],
     'session' => [
         'name' => 'serene_admin',
