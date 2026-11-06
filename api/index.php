@@ -15,6 +15,7 @@ $pages = [
     'schedules.php' => 'schedules.php',
     'services.php' => 'services.php',
     'settings.php' => 'settings.php',
+    'setup.php' => 'setup.php',
 ];
 
 if (!isset($pages[$route])) {
