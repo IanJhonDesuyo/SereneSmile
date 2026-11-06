@@ -2,6 +2,10 @@
 declare(strict_types=1);
 
 $config = require dirname(__DIR__) . '/config.php';
+if (getenv('VERCEL')) {
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+}
 
 $pdoOptions = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -9,8 +13,13 @@ $pdoOptions = [
     PDO::ATTR_EMULATE_PREPARES => false,
 ];
 if (!empty($config['db']['ssl_ca'])) {
-    $pdoOptions[PDO::MYSQL_ATTR_SSL_CA] = $config['db']['ssl_ca'];
-    $pdoOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+    if (class_exists('Pdo\\Mysql')) {
+        $pdoOptions[constant('Pdo\\Mysql::ATTR_SSL_CA')] = $config['db']['ssl_ca'];
+        $pdoOptions[constant('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')] = true;
+    } else {
+        $pdoOptions[PDO::MYSQL_ATTR_SSL_CA] = $config['db']['ssl_ca'];
+        $pdoOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+    }
 }
 
 try {
