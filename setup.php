@@ -4,7 +4,12 @@ declare(strict_types=1);
 require __DIR__ . '/includes/bootstrap.php';
 
 $setupToken = (string)getenv('SERENE_SETUP_TOKEN');
-$adminCount = (int)$pdo->query('SELECT COUNT(*) FROM admins')->fetchColumn();
+try {
+    $adminCount = (int)$pdo->query('SELECT COUNT(*) FROM admins')->fetchColumn();
+} catch (PDOException $e) {
+    http_response_code(503);
+    exit('Database schema is incomplete. Import database/schema.sql before creating an administrator.');
+}
 if ($setupToken === '' || $adminCount > 0) {
     http_response_code(404);
     exit('Page not found.');
