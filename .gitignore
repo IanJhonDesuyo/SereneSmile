@@ -12,3 +12,4 @@ desktop.ini
 
 vendor/
 node_modules/
+appium/artifacts/

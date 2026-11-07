@@ -1,0 +1,10 @@
+{
+  "name": "serene-smile-appium-tests",
+  "private": true,
+  "scripts": {
+    "test:appium": "node appium/serene-smile.test.js"
+  },
+  "devDependencies": {
+    "webdriverio": "^9.0.0"
+  }
+}

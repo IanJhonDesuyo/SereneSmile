@@ -27,6 +27,21 @@ This repository includes a single-function Vercel router using the community `ve
 
 Import `database/schema.sql` into the hosted MySQL-compatible database before the first login. Vercel automatically selects database-backed sessions; local XAMPP continues to use normal file sessions. You can override this with `SERENE_SESSION_DRIVER` (`database` or `files`).
 
+## Appium tests
+
+The tests automate the deployed site in Chrome on an Android emulator or USB-debug-enabled device. Start the device and Appium server, then run:
+
+See `docs/APPIUM_TESTING.md` for the complete one-time setup, normal test workflow, test evidence, and troubleshooting guide.
+
+```powershell
+$env:APP_URL='https://your-production-domain.vercel.app'
+$env:TEST_ADMIN_USERNAME='your-admin-username'
+$env:TEST_ADMIN_PASSWORD='your-admin-password'
+npm run test:appium
+```
+
+The credentials are optional; without them, the public login and invalid-login tests still run. Keep credentials in terminal environment variables only and never commit them.
+
 ## Security and behavior
 
 - Passwords use PHP's adaptive `password_hash`; no default credential is shipped.
