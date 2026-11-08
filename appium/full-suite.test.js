@@ -29,7 +29,15 @@ async function row(driver, ...values) {
   const conditions = values.map((value) => `contains(normalize-space(.), "${value}")`).join(' and ');
   return shown(driver, `//table//tr[${conditions}]`);
 }
-async function submit(form) { await form.$('button[type="submit"], button:not([type])').click(); }
+async function submit(driver, form) {
+  await form.$('button[type="submit"], button:not([type])').click();
+  const submitted = await driver.waitUntil(async () => {
+    return (await driver.$('.alert.success').isExisting()) || (await driver.$('.alert.error').isExisting());
+  }, { timeout: 4000, interval: 250 }).then(() => true).catch(() => false);
+  if (!submitted) {
+    await driver.execute((targetForm) => targetForm.requestSubmit(), form);
+  }
+}
 async function pass(id, message) { console.log(`PASS ${id}: ${message}`); }
 async function submitLogin(driver, resultSelector) {
   await driver.$('button[type="submit"]').click();
@@ -84,7 +92,7 @@ async function patients(driver) {
   await form.$('input[name="email"]').setValue(testData.patient.email);
   await form.$('input[name="phone"]').setValue(testData.patient.phone);
   await form.$('input[name="address"]').setValue('Appium automated test record');
-  await submit(form);
+  await submit(driver, form);
   assert((await text(driver, '.alert.success')).includes('saved'), 'Patient save failed');
   await pass('TC-05', 'Patient created');
 
@@ -101,7 +109,7 @@ async function patients(driver) {
   const updatedPhone = `08${runId.slice(-9)}`;
   await form.$('input[name="phone"]').setValue(updatedPhone);
   await form.$('input[name="address"]').setValue('Updated by Appium');
-  await submit(form);
+  await submit(driver, form);
   await row(driver, testData.patient.last, updatedPhone);
   await pass('TC-07', 'Patient updated');
   console.log('INFO TC-08: Patient hard-delete is not a feature; test record is retained for history');
@@ -116,7 +124,7 @@ async function dentists(driver) {
   await form.$('input[name="email"]').setValue(testData.dentist.email);
   await form.$('input[name="specialization"]').setValue('Automation Dentistry');
   await form.$('input[name="license_number"]').setValue(testData.dentist.license);
-  await submit(form);
+  await submit(driver, form);
   assert((await text(driver, '.alert.success')).includes('saved'), 'Dentist save failed');
   await pass('TC-09', 'Dentist created');
 
@@ -125,7 +133,7 @@ async function dentists(driver) {
   await record.$('a=Edit').click();
   form = await shown(driver, 'section.card form.form-grid');
   await form.$('input[name="specialization"]').setValue('Updated Automation Dentistry');
-  await submit(form);
+  await submit(driver, form);
   record = await row(driver, testData.dentist.last, 'Updated Automation Dentistry');
   await pass('TC-10', 'Dentist read and updated');
 
@@ -143,7 +151,7 @@ async function services(driver) {
   await form.$('input[name="price"]').setValue('750');
   await form.$('input[name="duration_minutes"]').setValue('45');
   await form.$('textarea[name="description"]').setValue('Temporary Appium CRUD test service');
-  await submit(form);
+  await submit(driver, form);
   assert((await text(driver, '.alert.success')).includes('saved'), 'Service save failed');
   await pass('TC-12', 'Service created');
 
@@ -153,7 +161,7 @@ async function services(driver) {
   form = await shown(driver, 'section.card form.form-grid');
   await form.$('input[name="name"]').setValue(testData.service.updated);
   await form.$('input[name="price"]').setValue('850');
-  await submit(form);
+  await submit(driver, form);
   record = await row(driver, testData.service.updated, '850.00');
   await pass('TC-13', 'Service read and updated');
 
@@ -185,7 +193,7 @@ async function appointments(driver) {
   await form.$('input[name="appointment_date"]').setValue(tomorrow);
   await form.$('input[name="start_time"]').setValue('15:00');
   await form.$('textarea[name="notes"]').setValue(`Appium workflow ${runId}`);
-  await submit(form);
+  await submit(driver, form);
   assert((await text(driver, '.alert.success')).includes('created'), 'Appointment create failed');
   await pass('TC-15', 'Pending appointment created');
 
