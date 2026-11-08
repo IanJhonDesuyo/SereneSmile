@@ -96,6 +96,12 @@ $env:TEST_ADMIN_USERNAME="your-admin-username"
 $env:TEST_ADMIN_PASSWORD="your-admin-password"
 ```
 
+To allow the full suite to create and update test records, set this explicit safety switch:
+
+```powershell
+$env:RUN_CRUD_TESTS="true"
+```
+
 These variables exist only in the current terminal. Never save the real password in Git or in the test source code.
 
 ### 4. Run the tests
@@ -113,6 +119,10 @@ The test automates Chrome in the emulator and checks:
 3. A configured administrator can log in.
 4. The dashboard loads.
 5. Mobile navigation opens Patient Management.
+6. Patient create, search/read, and update.
+7. Dentist create, read, update, and deactivate (soft delete).
+8. Dental Service create, read, update, and delete.
+9. Appointment create, approve, and complete workflow.
 
 Expected result:
 
@@ -123,7 +133,7 @@ PASS: Administrator signed in
 PASS: Patients navigation works
 ```
 
-If the admin environment variables are omitted, the valid-login and navigation tests are skipped.
+If the admin variables are omitted, authenticated tests are skipped. If `RUN_CRUD_TESTS=true` is omitted, database-changing tests are skipped. Patients have no hard-delete feature, dentists use deactivation, and appointments preserve status history, so the suite tests the lifecycle the application actually supports.
 
 ### 5. End the session
 

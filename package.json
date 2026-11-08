@@ -2,7 +2,8 @@
   "name": "serene-smile-appium-tests",
   "private": true,
   "scripts": {
-    "test:appium": "node appium/serene-smile.test.js"
+    "test:appium": "node appium/full-suite.test.js",
+    "test:appium:auth": "node appium/serene-smile.test.js"
   },
   "devDependencies": {
     "webdriverio": "^9.0.0"
