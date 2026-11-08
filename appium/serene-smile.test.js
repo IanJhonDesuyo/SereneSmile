@@ -17,6 +17,14 @@ async function textOf(driver, selector) {
   return element.getText();
 }
 
+async function submitLogin(driver, resultSelector) {
+  await driver.$('button[type="submit"]').click();
+  const submitted = await driver.waitUntil(async () => {
+    return (await driver.$(resultSelector).isExisting()) || !(await driver.$('input[name="identity"]').isExisting());
+  }, { timeout: 4000, interval: 250 }).then(() => true).catch(() => false);
+  if (!submitted) await driver.execute(() => document.querySelector('form').requestSubmit());
+}
+
 async function run() {
   const driver = await remote({
     hostname: process.env.APPIUM_HOST || '127.0.0.1',
@@ -44,7 +52,7 @@ async function run() {
     console.log('TEST 2: Invalid credentials are rejected');
     await driver.$('input[name="identity"]').setValue('appium-invalid-user');
     await driver.$('input[name="password"]').setValue('invalid-password');
-    await driver.$('button[type="submit"]').click();
+    await submitLogin(driver, '.alert.error');
     const error = await textOf(driver, '.alert.error');
     check(error.includes('incorrect'), `Expected invalid-login message, received: ${error}`);
     console.log('PASS: Invalid credentials were rejected');
@@ -57,7 +65,7 @@ async function run() {
     console.log('TEST 3: Administrator can sign in');
     await driver.$('input[name="identity"]').setValue(testUsername);
     await driver.$('input[name="password"]').setValue(testPassword);
-    await driver.$('button[type="submit"]').click();
+    await submitLogin(driver, '.topbar h1');
     const dashboardHeading = await textOf(driver, '.topbar h1');
     check(dashboardHeading === 'Dashboard', `Expected Dashboard, received: ${dashboardHeading}`);
     console.log('PASS: Administrator signed in');

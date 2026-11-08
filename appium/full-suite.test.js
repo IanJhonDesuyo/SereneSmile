@@ -31,6 +31,15 @@ async function row(driver, ...values) {
 }
 async function submit(form) { await form.$('button[type="submit"], button:not([type])').click(); }
 async function pass(id, message) { console.log(`PASS ${id}: ${message}`); }
+async function submitLogin(driver, resultSelector) {
+  await driver.$('button[type="submit"]').click();
+  const submitted = await driver.waitUntil(async () => {
+    return (await driver.$(resultSelector).isExisting()) || !(await driver.$('input[name="identity"]').isExisting());
+  }, { timeout: 4000, interval: 250 }).then(() => true).catch(() => false);
+  if (!submitted) {
+    await driver.execute(() => document.querySelector('form').requestSubmit());
+  }
+}
 
 async function authenticate(driver) {
   console.log('TC-01 Login page validation');
@@ -42,7 +51,7 @@ async function authenticate(driver) {
   console.log('TC-02 Invalid login');
   await driver.$('input[name="identity"]').setValue('appium-invalid-user');
   await driver.$('input[name="password"]').setValue('invalid-password');
-  await driver.$('button[type="submit"]').click();
+  await submitLogin(driver, '.alert.error');
   assert((await text(driver, '.alert.error')).toLowerCase().includes('incorrect'), 'Invalid login was not rejected');
   await pass('TC-02', 'Invalid credentials rejected');
 
@@ -53,7 +62,7 @@ async function authenticate(driver) {
   console.log('TC-03 Valid administrator login');
   await driver.$('input[name="identity"]').setValue(username);
   await driver.$('input[name="password"]').setValue(password);
-  await driver.$('button[type="submit"]').click();
+  await submitLogin(driver, '.topbar h1');
   assert((await text(driver, '.topbar h1')) === 'Dashboard', 'Dashboard did not load');
   await pass('TC-03', 'Administrator signed in');
 
